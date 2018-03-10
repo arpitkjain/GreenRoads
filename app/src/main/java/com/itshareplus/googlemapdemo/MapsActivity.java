@@ -86,7 +86,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onMapReady(GoogleMap googleMap) {
         mMap = googleMap;
-        LatLng hcmus = new LatLng(10.762963, 106.682394);
+        LatLng hcmus = new LatLng(22.3185141, 87.2987007);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(hcmus, 18));
         originMarkers.add(mMap.addMarker(new MarkerOptions()
                 .title("Đại học Khoa học tự nhiên")
