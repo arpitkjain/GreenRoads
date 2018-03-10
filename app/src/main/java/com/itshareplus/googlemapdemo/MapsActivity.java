@@ -32,6 +32,8 @@ import Modules.DirectionFinder;
 import Modules.DirectionFinderListener;
 import Modules.Route;
 
+import android.content.Intent;
+
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, DirectionFinderListener {
 
     private GoogleMap mMap;
@@ -60,6 +62,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
                 sendRequest();
+            }
+        });
+
+        goToReviewActivity();
+    }
+
+    private void goToReviewActivity() {
+        Button reviewButton = (Button) findViewById(R.id.btnReview);
+        reviewButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                startActivity(new Intent(MapsActivity.this, ReviewActivity.class));
             }
         });
     }
