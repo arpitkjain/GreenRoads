@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/GoogleMapDemo.iml" filepath="$PROJECT_DIR$/GoogleMapDemo.iml" />
-      <module fileurl="file://$PROJECT_DIR$/GoogleMapDirectionSimple.iml" filepath="$PROJECT_DIR$/GoogleMapDirectionSimple.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/cfd_GreenRoads.iml" filepath="$PROJECT_DIR$/cfd_GreenRoads.iml" />
     </modules>
   </component>
 </project>
