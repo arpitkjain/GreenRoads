@@ -38,6 +38,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private GoogleMap mMap;
     private Button btnFindPath;
+    private Button reviewButton;
     private EditText etOrigin;
     private EditText etDestination;
     private List<Marker> originMarkers = new ArrayList<>();
@@ -69,7 +70,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void goToReviewActivity() {
-        Button reviewButton = (Button) findViewById(R.id.btnReview);
+        reviewButton = (Button) findViewById(R.id.btnReview);
         reviewButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -123,7 +124,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onDirectionFinderStart() {
         progressDialog = ProgressDialog.show(this, "Please wait.",
-                "Eeshan and Arpit are finding direction :) ", true);
+                "Team Schwifty is on the task :) ", true);
 
         if (originMarkers != null) {
             for (Marker marker : originMarkers) {
