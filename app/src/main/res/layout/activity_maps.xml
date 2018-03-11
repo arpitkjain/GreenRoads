@@ -37,7 +37,7 @@
             android:src="@drawable/ic_distance"/>
         <TextView
             android:layout_marginLeft="5dp"
-            android:layout_width="wrap_content"
+            android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:text="0 km"
             android:id="@+id/tvDistance" />
@@ -51,7 +51,7 @@
             android:src="@drawable/ic_clock"/>
         <TextView
             android:layout_marginLeft="5dp"
-            android:layout_width="wrap_content"
+            android:layout_width="50dp"
             android:layout_height="wrap_content"
             android:text="0 min"
             android:id="@+id/tvDuration" />
@@ -60,7 +60,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Review"
-            android:layout_marginLeft="20dp"
+            android:layout_marginLeft="15dp"
             android:id="@+id/btnReview"/>
     </LinearLayout>
 
