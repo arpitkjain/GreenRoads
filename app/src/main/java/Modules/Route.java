@@ -14,6 +14,8 @@ public class Route {
     public LatLng endLocation;
     public String startAddress;
     public LatLng startLocation;
-
+    public int rating;
+    public String jsonRAW;
     public List<LatLng> points;
+    public List<String> placeIds;
 }

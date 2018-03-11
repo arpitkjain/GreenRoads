@@ -89,5 +89,4 @@ public class ReviewActivity extends FragmentActivity implements OnMapReadyCallba
             }
         });
     }
-
 }
