@@ -7,17 +7,36 @@
     android:layout_height="match_parent"
     android:orientation="vertical"  >
 
-    <EditText
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+    <!--<EditText-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:id="@+id/etOrigin"-->
+        <!--android:hint="Enter origin address"-->
+        <!--android:focusable="false"-->
+        <!--/>-->
+    <fragment
         android:id="@+id/etOrigin"
-        android:hint="Enter origin address" />
-
-    <EditText
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
+        android:hint="Enter origin address"
+        />
+
+    <!--<EditText-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:hint="Enter destination address"-->
+        <!--android:id="@+id/etDestination"-->
+        <!--android:focusable="false"-->
+        <!--/>-->
+
+    <fragment
+        android:id="@+id/etDestination"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
         android:hint="Enter destination address"
-        android:id="@+id/etDestination" />
+        />
 
     <LinearLayout
         android:layout_width="match_parent"
