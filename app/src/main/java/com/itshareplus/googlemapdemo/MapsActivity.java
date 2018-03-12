@@ -257,7 +257,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         reviewButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(new Intent(MapsActivity.this, ReviewActivity.class));
+                Intent intent = new Intent(MapsActivity.this, ReviewActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                finish();
+//                startActivity(new Intent(MapsActivity.this, ReviewActivity.class));
             }
         });
     }
@@ -287,7 +291,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         LatLng hcmus = new LatLng(22.3185141, 87.2987007);
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(hcmus, 18));
         originMarkers.add(mMap.addMarker(new MarkerOptions()
-                .title("Đại học Khoa học tự nhiên")
+                .title("Azad Hall of Residence")
                 .position(hcmus)));
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
@@ -307,7 +311,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onDirectionFinderStart() {
         progressDialog = ProgressDialog.show(this, "Please wait",
-                "Finding routes...", true);
+                "Team Schwifty is on the job!", true);
 
         if (originMarkers != null) {
             for (Marker marker : originMarkers) {
