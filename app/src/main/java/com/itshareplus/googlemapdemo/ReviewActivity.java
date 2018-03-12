@@ -2,12 +2,15 @@ package com.itshareplus.googlemapdemo;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.os.AsyncTask;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -21,7 +24,13 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,9 +43,90 @@ import android.widget.RatingBar;
 import android.widget.RatingBar.OnRatingBarChangeListener;
 import android.view.View.OnClickListener;
 
-import Modules.NearestRoad;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import Modules.MyDBHandler;
+//import Modules.NearestRoad;
 
 public class ReviewActivity extends FragmentActivity implements OnMapReadyCallback {
+    public class NearestRoad {
+        private static final String ROADS_URL_API = "https://roads.googleapis.com/v1/nearestRoads?";
+        private static final String GOOGLE_ROADS_API_KEY = "AIzaSyAwfTIhnQx7SuvmspQEjNgeelNyEU3Gw4w";
+        private LatLng point;
+        private String placeID;
+        private float ratingValue;
+        private Context cntx;
+
+        public NearestRoad(Context cntx){
+            this.cntx=cntx;
+        }
+
+        public NearestRoad(LatLng point, float ratingValue) {
+            this.point = point;
+            this.ratingValue = ratingValue;
+        }
+
+        private String createPlacesUrl(LatLng point) throws UnsupportedEncodingException {
+            Log.d("Reached url","Reached url");
+            StringBuilder encodedPoint = new StringBuilder();
+            encodedPoint.append(point.latitude + "," + point.longitude);
+            String pointUnrefined = encodedPoint.toString();
+            return ROADS_URL_API + "points=" + pointUnrefined + "&key=" + GOOGLE_ROADS_API_KEY;
+        }
+
+        private class SendToServer extends AsyncTask<String, Void, String> {
+
+            @Override
+            protected String doInBackground(String... params) {
+                String link = params[0];
+                try {
+                    URL url = new URL(link);
+                    InputStream is = url.openConnection().getInputStream();
+                    StringBuffer buffer = new StringBuffer();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+
+                    String line;
+                    while ((line = reader.readLine()) != null) {
+                        buffer.append(line + "\n");
+                    }
+
+                    return buffer.toString();
+
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(String res){
+                try {
+                    JSONObject jsonData = new JSONObject(res);
+                    Log.d("jsonData",jsonData.toString());
+                    JSONArray jsonSnappedPoints = jsonData.getJSONArray("snappedPoints");
+                    JSONObject jsonSnappedPoint = jsonSnappedPoints.getJSONObject(0);
+                    placeID = jsonSnappedPoint.getString("placeId");
+                    sendToServer(placeID, ratingValue);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        public void execute() throws UnsupportedEncodingException {
+            String placesURL = createPlacesUrl(point);
+            new SendToServer().execute(placesURL);
+        }
+        public void sendToServer(String placeId, float ratingValue) {
+            MyDBHandler db = new MyDBHandler(ReviewActivity.this, null,
+                    null, 1);
+            db.addHandler(placeId, ratingValue);
+            Log.d("readfromdb", Float.toString(db.loadHandler(placeId)));
+        }
+    }
 
     private GoogleMap mMap;
     private List<Marker> originMarkers = new ArrayList<>();
@@ -81,6 +171,8 @@ public class ReviewActivity extends FragmentActivity implements OnMapReadyCallba
                 try {
                     NearestRoad nearestRoad = new NearestRoad(point, ratingValue);
                     nearestRoad.execute();
+                    MyDBHandler dbHandler = new MyDBHandler(ReviewActivity.this, null,
+                            null, 1);
                 } catch (UnsupportedEncodingException e) {
                     e.printStackTrace();
                 }

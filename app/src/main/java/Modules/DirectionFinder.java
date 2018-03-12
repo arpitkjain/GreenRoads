@@ -29,8 +29,12 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.lang.StringBuilder;
+import java.util.Random;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -49,6 +53,8 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
 import static com.google.android.gms.internal.zzir.runOnUiThread;
+import static java.lang.Math.floor;
+import static java.lang.Math.random;
 
 /**
  * Created by Mai Thanh Hiep on 4/3/2016.
@@ -291,6 +297,7 @@ public class DirectionFinder {
                     e.printStackTrace();
                 }
                 Log.i("Route", route.startAddress);
+                route.rating = rater(route.placeIds);
             }
             listener.onDirectionFinderSuccess(routes);
         }
@@ -409,8 +416,33 @@ public class DirectionFinder {
     // snapPoints(decodePolyLine(overview_polylineJson.getString("points")));
     // route.points = refinedPoly;
 
-    private int rater(List<LatLng> points) {
-        return 0;
+    private double rater(List<String> placeIds) {
+        int[] numbers ={0,0};
+        double total = 0;
+        Set<String> hashedPIDS = new HashSet<String>(placeIds);
+        Iterator<String> itr = hashedPIDS.iterator();
+        while(itr.hasNext()) {
+            String placeId = itr.next();
+            double rating = retrieveRating(placeId);
+            if(rating<=2) {
+                total += 2 * rating;
+                numbers[1]++;
+            }
+            else{
+                total += rating;
+                numbers[0]++;
+            }
+
+        }
+        double finalRating = total/(numbers[0]+numbers[1]*2);
+        return finalRating;
+    }
+    private double retrieveRating(String placeId)
+    {
+        //TODO: From server
+        Random num = new Random();
+        int showme = num.nextInt(5);
+        return showme;
     }
 
     /*
