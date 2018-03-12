@@ -214,6 +214,8 @@ import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 import Modules.DirectionFinder;
@@ -221,6 +223,8 @@ import Modules.DirectionFinderListener;
 import Modules.Route;
 
 import android.content.Intent;
+
+import static java.lang.Math.floor;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, DirectionFinderListener {
 
@@ -380,31 +384,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onDirectionFinderSuccess(List<Route> routes) {
 
-
         Log.d("Reached oDFS","Reached oDFS");
         progressDialog.dismiss();
         polylinePaths = new ArrayList<>();
         originMarkers = new ArrayList<>();
         destinationMarkers = new ArrayList<>();
-
+        int[] colors = new int[]{Color.RED,Color.rgb(255,140,0),Color.YELLOW,Color.BLUE,Color.GREEN,Color.GREEN};
+        if(routes.isEmpty())
+            return;
+        Collections.sort(routes, new Comparator<Route>(){
+            public int compare(Route o1, Route o2){
+                return (int)(o1.rating - o2.rating);
+            }
+        });
         for (Route route : routes) {
             Log.i("Route", route.startLocation.toString());
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(route.startLocation, 16));
             ((TextView) findViewById(R.id.tvDuration)).setText(route.duration.text);
             ((TextView) findViewById(R.id.tvDistance)).setText(route.distance.text);
 
-            originMarkers.add(mMap.addMarker(new MarkerOptions()
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.start_blue))
-                    .title(route.startAddress)
-                    .position(route.startLocation)));
-            destinationMarkers.add(mMap.addMarker(new MarkerOptions()
-                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.end_green))
-                    .title(route.endAddress)
-                    .position(route.endLocation)));
-
             PolylineOptions polylineOptions = new PolylineOptions().
                     geodesic(true).
-                    color(Color.BLUE).
+                    color(colors[(int)floor(route.rating)]).
                     width(10);
 
             for (int i = 0; i < route.points.size(); i++)
@@ -412,5 +413,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             polylinePaths.add(mMap.addPolyline(polylineOptions));
         }
+        originMarkers.add(mMap.addMarker(new MarkerOptions()
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.start_blue))
+                .title(routes.get(0).startAddress)
+                .position(routes.get(0).startLocation)));
+        destinationMarkers.add(mMap.addMarker(new MarkerOptions()
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.end_green))
+                .title(routes.get(0).endAddress)
+                .position(routes.get(0).endLocation)));
     }
 }

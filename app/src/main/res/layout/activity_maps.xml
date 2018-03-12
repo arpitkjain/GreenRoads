@@ -1,4 +1,4 @@
-<LinearLayout
+<RelativeLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:map="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
@@ -16,11 +16,13 @@
         <!--/>-->
     <fragment
         android:id="@+id/etOrigin"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
-        android:hint="Enter origin address"
-        />
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_alignParentTop="true"
+        android:hint="Enter origin address" />
 
     <!--<EditText-->
         <!--android:layout_width="match_parent"-->
@@ -32,62 +34,87 @@
 
     <fragment
         android:id="@+id/etDestination"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
-        android:hint="Enter destination address"
-        />
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/etOrigin"
+        android:hint="Enter destination address" />
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        >
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Find path"
-            android:id="@+id/btnFindPath" />
-        <ImageView
-            android:layout_marginLeft="20dp"
-            android:layout_marginTop="5dp"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:src="@drawable/ic_distance"/>
-        <TextView
-            android:layout_marginLeft="5dp"
-            android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:text="0 km"
-            android:id="@+id/tvDistance" />
+        android:id="@+id/relativeLayout2">
 
-        <ImageView
-            android:layout_marginLeft="20dp"
-            android:layout_marginTop="5dp"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:padding="5dp"
-            android:src="@drawable/ic_clock"/>
-        <TextView
-            android:layout_marginLeft="5dp"
-            android:layout_width="50dp"
-            android:layout_height="wrap_content"
-            android:text="0 min"
-            android:id="@+id/tvDuration" />
-
-        <Button
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Review"
-            android:layout_marginLeft="15dp"
-            android:id="@+id/btnReview"/>
-    </LinearLayout>
+    </RelativeLayout>
 
 
     <fragment
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/btnReview" />
 
-</LinearLayout>
+    <Button
+        android:id="@+id/btnReview"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/etDestination"
+        android:text="Review" />
+
+    <Button
+        android:id="@+id/btnFindPath"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/etDestination"
+        android:text="Find path" />
+
+    <ImageView
+        android:id="@+id/imageView"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_below="@+id/etDestination"
+        android:layout_toLeftOf="@+id/tvDuration"
+        android:layout_toStartOf="@+id/tvDuration"
+        android:padding="5dp"
+        android:src="@drawable/ic_clock" />
+
+    <ImageView
+        android:id="@+id/imageView2"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_below="@+id/etDestination"
+        android:layout_toEndOf="@+id/btnFindPath"
+        android:layout_toRightOf="@+id/btnFindPath"
+        android:src="@drawable/ic_distance" />
+
+    <TextView
+        android:id="@+id/tvDuration"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/btnReview"
+        android:layout_alignBottom="@+id/btnReview"
+        android:layout_toLeftOf="@+id/btnReview"
+        android:layout_toStartOf="@+id/btnReview"
+        android:text="0 min" />
+
+    <TextView
+        android:id="@+id/tvDistance"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_alignBaseline="@+id/btnFindPath"
+        android:layout_alignBottom="@+id/btnFindPath"
+        android:layout_toEndOf="@+id/imageView2"
+        android:layout_toRightOf="@+id/imageView2"
+        android:text="0 km" />
+
+</RelativeLayout>
