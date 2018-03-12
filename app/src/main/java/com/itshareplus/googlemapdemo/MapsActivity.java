@@ -197,6 +197,10 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -223,13 +227,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private Button btnFindPath;
     private Button reviewButton;
-    private EditText etOrigin;
-    private EditText etDestination;
+    //private EditText etOrigin;
+    //private EditText etDestination;
     private List<Marker> originMarkers = new ArrayList<>();
     private List<Marker> destinationMarkers = new ArrayList<>();
     private List<Polyline> polylinePaths = new ArrayList<>();
     private ProgressDialog progressDialog;
     private Context mContext;
+    private LatLng origin;
+    private LatLng destination;
+    public PlaceAutocompleteFragment autocompleteFragmentO;
+    public PlaceAutocompleteFragment autocompleteFragmentD;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -238,10 +247,48 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+        origin = null;
+        destination = null;
         mContext = getApplicationContext();
         btnFindPath = (Button) findViewById(R.id.btnFindPath);
-        etOrigin = (EditText) findViewById(R.id.etOrigin);
-        etDestination = (EditText) findViewById(R.id.etDestination);
+        //etOrigin = (EditText) findViewById(R.id.etOrigin);
+        //etDestination = (EditText) findViewById(R.id.etDestination);
+
+        autocompleteFragmentO = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.etOrigin);
+        autocompleteFragmentO.setHint("Enter origin address");
+        autocompleteFragmentO.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // TODO: Get info about the selected place.
+                origin = place.getLatLng();
+                Log.i("Place", "Origin: " + place.getName());
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i("Place", "An error occurred: " + status);
+            }
+        });
+
+        autocompleteFragmentD = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.etDestination);
+        autocompleteFragmentD.setHint("Enter destination address");
+        autocompleteFragmentD.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // TODO: Get info about the selected place.
+                destination = place.getLatLng();
+                Log.i("Place", "Destination: " + place.getName());
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i("Place", "An error occurred: " + status);
+            }
+        });
 
         btnFindPath.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -267,13 +314,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     private void sendRequest() {
-        String origin = etOrigin.getText().toString();
-        String destination = etDestination.getText().toString();
-        if (origin.isEmpty()) {
+        if (origin==null) {
             Toast.makeText(this, "Please enter origin address!", Toast.LENGTH_SHORT).show();
             return;
         }
-        if (destination.isEmpty()) {
+        if (destination==null) {
             Toast.makeText(this, "Please enter destination address!", Toast.LENGTH_SHORT).show();
             return;
         }
@@ -343,6 +388,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         destinationMarkers = new ArrayList<>();
 
         for (Route route : routes) {
+            Log.i("Route", route.startLocation.toString());
             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(route.startLocation, 16));
             ((TextView) findViewById(R.id.tvDuration)).setText(route.duration.text);
             ((TextView) findViewById(R.id.tvDistance)).setText(route.distance.text);

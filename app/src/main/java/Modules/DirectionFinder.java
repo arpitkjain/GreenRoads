@@ -59,12 +59,12 @@ public class DirectionFinder {
     private static final String ROADS_URL_API = "https://roads.googleapis.com/v1/snapToRoads?";
     private static final String GOOGLE_ROADS_API_KEY = "AIzaSyAQ02l5cu_T5ve5FWSg59vx6qcR5P6Mod0";
     private DirectionFinderListener listener;
-    private String origin;
-    private String destination;
+    private LatLng origin;
+    private LatLng destination;
     private Context mContext;
     private List<LatLng> refinedPoly;
 
-    public DirectionFinder(DirectionFinderListener listener, String origin, String destination, Context mContext) {
+    public DirectionFinder(DirectionFinderListener listener, LatLng origin, LatLng destination, Context mContext) {
         this.listener = listener;
         this.origin = origin;
         this.destination = destination;
@@ -78,10 +78,10 @@ public class DirectionFinder {
     }
 
     private String createUrl() throws UnsupportedEncodingException {
-        String urlOrigin = URLEncoder.encode(origin, "utf-8");
-        String urlDestination = URLEncoder.encode(destination, "utf-8");
+        //String urlOrigin = URLEncoder.encode(origin, "utf-8");
+        //String urlDestination = URLEncoder.encode(destination, "utf-8");
 
-        return DIRECTION_URL_API + "origin=" + urlOrigin + "&destination=" + urlDestination  + "&alternatives=true&key=" + GOOGLE_API_KEY;
+        return DIRECTION_URL_API + "origin=" + origin.latitude+","+origin.longitude + "&destination=" + destination.latitude+","+destination.longitude  + "&alternatives=true&key=" + GOOGLE_API_KEY;
     }
 
     private String createPlacesUrl(List<LatLng> points) {
@@ -143,6 +143,8 @@ public class DirectionFinder {
             String link = params[0];
             try {
                 URL url = new URL(link);
+
+                Log.i("JSON URL", url.toString());
                 InputStream is = url.openConnection().getInputStream();
                 StringBuffer buffer = new StringBuffer();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -165,6 +167,8 @@ public class DirectionFinder {
         @Override
         protected void onPostExecute(String res){
             try {
+
+                Log.i("Place JSON", res);
                 parseJSon(res);
             } catch (JSONException e) {
                 e.printStackTrace();
@@ -286,12 +290,14 @@ public class DirectionFinder {
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
+                Log.i("Route", route.startAddress);
             }
             listener.onDirectionFinderSuccess(routes);
         }
     }
 
     public void snapAndDisplayPoints(List<Route> routes) {
+        Log.i("Reached snapAndDisp", "Reached snapAndDisp ");
         new GetJSONTask().execute(routes);
 /*
         for(Route route:routes)
