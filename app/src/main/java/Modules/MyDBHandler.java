@@ -34,6 +34,8 @@ public class MyDBHandler extends SQLiteOpenHelper {
         String query = "Select * FROM " + TABLE_NAME + " WHERE " + COLUMN_ID + " = '" + placeId + "'";
         SQLiteDatabase db = this.getWritableDatabase();
         Cursor cursor = db.rawQuery(query, null);
+        if(cursor.getCount()<=0)
+            return -1;
         while (cursor.moveToNext()) {
             cursor.getString(0);
             cursor.getString(1);

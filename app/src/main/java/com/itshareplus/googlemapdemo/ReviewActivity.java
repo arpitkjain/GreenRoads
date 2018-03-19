@@ -130,7 +130,7 @@ public class ReviewActivity extends FragmentActivity implements OnMapReadyCallba
 
     private GoogleMap mMap;
     private List<Marker> originMarkers = new ArrayList<>();
-    private LatLng point;
+    private LatLng point = null;
     private RatingBar ratingBar;
     private float ratingValue;
     private Button btnSubmit;
@@ -167,6 +167,11 @@ public class ReviewActivity extends FragmentActivity implements OnMapReadyCallba
         btnSubmit.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(point==null)
+                {
+                    Toast.makeText(ReviewActivity.this, "Long press on map to select location", Toast.LENGTH_SHORT).show();
+                    return;
+                }
                 Toast.makeText(ReviewActivity.this, "Rating Registered: " + Float.toString(ratingValue), Toast.LENGTH_SHORT).show();
                 try {
                     NearestRoad nearestRoad = new NearestRoad(point, ratingValue);
