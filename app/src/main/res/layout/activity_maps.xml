@@ -99,7 +99,7 @@
 
     <TextView
         android:id="@+id/tvDuration"
-        android:layout_width="50dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/btnReview"
         android:layout_alignBottom="@+id/btnReview"
@@ -109,7 +109,7 @@
 
     <TextView
         android:id="@+id/tvDistance"
-        android:layout_width="50dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignBaseline="@+id/btnFindPath"
         android:layout_alignBottom="@+id/btnFindPath"

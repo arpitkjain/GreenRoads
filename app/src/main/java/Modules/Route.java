@@ -19,3 +19,9 @@ public class Route {
     public List<LatLng> points;
     public List<String> placeIds;
 }
+
+class TooMuchData extends Exception{
+    TooMuchData(String s){
+        super(s);
+    }
+}

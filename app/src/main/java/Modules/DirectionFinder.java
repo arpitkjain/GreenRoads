@@ -51,6 +51,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.itshareplus.googlemapdemo.ReviewActivity;
 
 import static com.google.android.gms.internal.zzir.runOnUiThread;
 import static java.lang.Math.floor;
@@ -253,9 +254,10 @@ public class DirectionFinder {
             // Creating new JSON Parser
             List<Route> routes = params[0];
             int i =0;
-            for(Route route: routes)
-            {
-                try {
+            try {
+
+                for(Route route: routes)
+                {
                     URL url = new URL(createPlacesUrl(route.points));
                     InputStream is = url.openConnection().getInputStream();
                     StringBuffer buffer = new StringBuffer();
@@ -267,24 +269,34 @@ public class DirectionFinder {
                     }
 
                     route.jsonRAW = (buffer.toString());
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                    i++;
                 }
-                i++;
+                return routes;
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-            return routes;
+            return null;
+
         }
         protected void onPostExecute(List<Route> routes) {
+            int flag = 1;
+            if(routes==null)
+                return;
+            try {
             for(Route route : routes)
             {
-                try {
                     JSONObject jsonData = new JSONObject(route.jsonRAW);
                     JSONArray jsonSnappedPoints = jsonData.getJSONArray("snappedPoints");
                     route.points.clear();
                     route.placeIds = new ArrayList<>();
+                    if(jsonSnappedPoints==null)
+                    {
+                        Log.d("TooMuchData","TooMuchData");
+                        throw new TooMuchData("x");
+                    }
                     for (int i = 0; i < jsonSnappedPoints.length(); i++) {
                         JSONObject jsonSnappedPoint = jsonSnappedPoints.getJSONObject(i);
                         JSONObject location = jsonSnappedPoint.getJSONObject("location");
@@ -293,13 +305,23 @@ public class DirectionFinder {
                         route.points.add(snappedPoint);
                         route.placeIds.add(snappedPointplaceID);
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
                 Log.i("Route", route.startAddress);
                 route.rating = rater(route.placeIds);
             }
-            listener.onDirectionFinderSuccess(routes);
+
+                listener.onDirectionFinderSuccess(routes);
+            }
+            catch (JSONException e) {
+                e.printStackTrace();
+            }
+            catch(NullPointerException e) {
+                Toast.makeText(mContext,"Please enter nearer places",Toast.LENGTH_SHORT).show();
+                flag = 0;
+            }
+            catch(TooMuchData e) {
+                Toast.makeText(mContext,"Please enter nearer places",Toast.LENGTH_SHORT).show();
+                flag = 0;
+            }
         }
     }
 
@@ -425,24 +447,33 @@ public class DirectionFinder {
             String placeId = itr.next();
             double rating = retrieveRating(placeId);
             if(rating<=2) {
-                total += 2 * rating;
+                total += 1 * rating;
                 numbers[1]++;
             }
             else{
-                total += rating;
+                total += 1 * rating;
                 numbers[0]++;
             }
 
         }
-        double finalRating = total/(numbers[0]+numbers[1]*2);
+        Log.d("Total",""+total);
+
+        double finalRating = total/(numbers[0]+numbers[1]);
         return finalRating;
     }
     private double retrieveRating(String placeId)
     {
-        //TODO: From server
-        Random num = new Random();
-        int showme = num.nextInt(5);
-        return showme;
+        MyDBHandler db = new MyDBHandler(mContext, null,
+                null, 1);
+        double response = db.loadHandler(placeId);
+        if(response<0)
+            return 3;
+        else
+            return response;
+        //Random num = new Random();
+        //int showme = num.nextInt(6);
+        //Log.d("Random number",""+showme);
+        //return showme;
     }
 
     /*
