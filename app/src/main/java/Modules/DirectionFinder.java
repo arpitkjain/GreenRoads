@@ -58,7 +58,7 @@ import static java.lang.Math.floor;
 import static java.lang.Math.random;
 
 /**
- * Created by Mai Thanh Hiep on 4/3/2016.
+ * Created by Team Schwifty
  */
 public class DirectionFinder {
     private static final String DIRECTION_URL_API = "https://maps.googleapis.com/maps/api/directions/json?";
@@ -71,23 +71,9 @@ public class DirectionFinder {
     private Context mContext;
     private List<LatLng> refinedPoly;
 
-    public DirectionFinder(DirectionFinderListener listener, LatLng origin, LatLng destination, Context mContext) {
-        this.listener = listener;
-        this.origin = origin;
-        this.destination = destination;
-        this.mContext = mContext;
-        refinedPoly = new ArrayList<LatLng>();
-    }
-
-    public void execute() throws UnsupportedEncodingException {
-        listener.onDirectionFinderStart();
-        new DownloadRawData().execute(createUrl());
-    }
-
     private String createUrl() throws UnsupportedEncodingException {
         //String urlOrigin = URLEncoder.encode(origin, "utf-8");
         //String urlDestination = URLEncoder.encode(destination, "utf-8");
-
         return DIRECTION_URL_API + "origin=" + origin.latitude+","+origin.longitude + "&destination=" + destination.latitude+","+destination.longitude  + "&alternatives=true&key=" + GOOGLE_API_KEY;
     }
 
@@ -143,7 +129,26 @@ public class DirectionFinder {
         return decoded;
     }
 
-    private class DownloadRawData extends AsyncTask<String, Void, String> {
+    public DirectionFinder(DirectionFinderListener listener, LatLng origin, LatLng destination, Context mContext) {
+        this.listener = listener;
+        this.origin = origin;
+        this.destination = destination;
+        this.mContext = mContext;
+        refinedPoly = new ArrayList<LatLng>();
+    }
+
+    // execute -> DownloadUnrefinedRoads -> parseJSON -> DownloadRefinedRoads -> rater -> retrieveRating
+    //                             decodePolyline                 |             for each route
+    //                                                            |
+    //                                                            -> DirectionFinderListener::DirectionFinderSuccess(routes)
+
+    public void execute() throws UnsupportedEncodingException {
+        listener.onDirectionFinderStart();
+        new DownloadUnrefinedRoads().execute(createUrl());
+    }
+
+    // Uses DirectionsAPI to get routes between origin and destination
+    private class DownloadUnrefinedRoads extends AsyncTask<String, Void, String> {
 
         @Override
         protected String doInBackground(String... params) {
@@ -151,7 +156,7 @@ public class DirectionFinder {
             try {
                 URL url = new URL(link);
 
-                Log.i("JSON URL", url.toString());
+                Log.i("DUR Background", url.toString());
                 InputStream is = url.openConnection().getInputStream();
                 StringBuffer buffer = new StringBuffer();
                 BufferedReader reader = new BufferedReader(new InputStreamReader(is));
@@ -175,8 +180,8 @@ public class DirectionFinder {
         protected void onPostExecute(String res){
             try {
 
-                Log.i("Place JSON", res);
-                parseJSon(res);
+                Log.i("DUR Post", res);
+                parseJSON(res);
             } catch (JSONException e) {
                 e.printStackTrace();
             } catch(UnsupportedEncodingException e){
@@ -185,36 +190,8 @@ public class DirectionFinder {
         }
     }
 
-    // TODO: REMOVE THIS
-    private class SnapDownloadRawData extends AsyncTask<String, Void, String> {
-
-        @Override
-        protected String doInBackground(String... params) {
-            String link = params[0];
-            try {
-                URL url = new URL(link);
-                InputStream is = url.openConnection().getInputStream();
-                StringBuffer buffer = new StringBuffer();
-                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    buffer.append(line + "\n");
-                }
-
-                return buffer.toString();
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-    }
-
-    private void parseJSon(String data) throws JSONException, UnsupportedEncodingException{
+    // Creates all the unrefined routes from the JSON, collectively sends to snapAndDisplayPoints (GetJSONTask)
+    private void parseJSON(String data) throws JSONException, UnsupportedEncodingException{
         if (data == null)
             return;
 
@@ -245,13 +222,13 @@ public class DirectionFinder {
             route.points = decodePolyLine(overview_polylineJson.getString("points"));
             routes.add(route);
         }
-        snapAndDisplayPoints(routes);
+        new DownloadRefinedRoads().execute(routes);
     }
 
-    private class GetJSONTask extends AsyncTask<List<Route>, Void, List<Route>> {
+    // Puts raw JSON data of snapped points into each route in background, in post it parses the JSON, assigns rating to each route structure and collectively calls for plotting them
+    private class DownloadRefinedRoads extends AsyncTask<List<Route>, Void, List<Route>> {
 
         protected List<Route> doInBackground(List<Route>... params) {
-            // Creating new JSON Parser
             List<Route> routes = params[0];
             int i =0;
             try {
@@ -279,24 +256,24 @@ public class DirectionFinder {
                 e.printStackTrace();
             }
             return null;
-
         }
+
         protected void onPostExecute(List<Route> routes) {
             int flag = 1;
             if(routes==null)
                 return;
             try {
-            for(Route route : routes)
-            {
+                for(Route route : routes) {
                     JSONObject jsonData = new JSONObject(route.jsonRAW);
                     JSONArray jsonSnappedPoints = jsonData.getJSONArray("snappedPoints");
                     route.points.clear();
                     route.placeIds = new ArrayList<>();
-                    if(jsonSnappedPoints==null)
-                    {
-                        Log.d("TooMuchData","TooMuchData");
+
+                    if(jsonSnappedPoints==null) {
+                        Log.d("DRR Post","TooMuchData");
                         throw new TooMuchData("x");
                     }
+
                     for (int i = 0; i < jsonSnappedPoints.length(); i++) {
                         JSONObject jsonSnappedPoint = jsonSnappedPoints.getJSONObject(i);
                         JSONObject location = jsonSnappedPoint.getJSONObject("location");
@@ -305,10 +282,10 @@ public class DirectionFinder {
                         route.points.add(snappedPoint);
                         route.placeIds.add(snappedPointplaceID);
                     }
-                Log.i("Route", route.startAddress);
-                route.rating = rater(route.placeIds);
-            }
 
+                    Log.i("DRR Route", route.startAddress);
+                    route.rating = rater(route.placeIds);                   /*SERIAL*/
+                }
                 listener.onDirectionFinderSuccess(routes);
             }
             catch (JSONException e) {
@@ -325,119 +302,7 @@ public class DirectionFinder {
         }
     }
 
-    public void snapAndDisplayPoints(List<Route> routes) {
-        Log.i("Reached snapAndDisp", "Reached snapAndDisp ");
-        new GetJSONTask().execute(routes);
-/*
-        for(Route route:routes)
-        {
-            new SnapToRoad(route.points, new Handler(){
-
-                List<LatLng> responseList;
-                @Override
-                public void handleMessage(Message message){
-                    String response = message.getData().getString("response");
-                    JsonObject jsonObject = new JsonParser().parse(response).getAsJsonObject();
-                    JsonArray jsonArray = jsonObject.getAsJsonArray("snappedPoints");
-                    for(JsonElement jsonObj : jsonArray){
-
-                        JsonObject locationData = jsonObj.getAsJsonObject();
-                        double latitude = locationData.get("location").getAsJsonObject().get("latitude").getAsDouble();
-                        double longitude = locationData.get("location").getAsJsonObject().get("longitude").getAsDouble();
-                        responseList.add(new LatLng(latitude, longitude));
-                    }
-                    route.points =
-                    List<Route> routes = new ArrayList<Route>();
-                    routes.add(route);
-                    listener.onDirectionFinderSuccess(routes);
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run(){
-                            partPath = new PolylineOptions().color(getResources().getColor(R.color.colorAccent)).width(15.0f);
-                            partPath.addAll(responseList);
-                            map.addPolyline(partPath);
-                        }
-                    });
-                }
-            }).start();
-
-        }
-*/    }
-
-    public class SnapToRoad extends Thread {
-
-        private boolean isUnexecutable = false;
-
-        private Handler mHandler;
-
-        private List<LatLng> resultData;
-
-        private final String API_KEY = "AIzaSyAQ02l5cu_T5ve5FWSg59vx6qcR5P6Mod0";
-        private final String TAG = SnapToRoad.class.getSimpleName();
-
-        private final int CUTTING_POINT = 1;
-        private final int READ_TIME_OUT = 10000;
-        private final int CONNECT_TIME_OUT = 15000;
-
-        private String tempURL;
-        private String FOOTER = "&interpolate=true&key=" + API_KEY;
-
-        public SnapToRoad(final List<LatLng> coordList, final Handler mHandler){
-            if(coordList.size() < 2) isUnexecutable = true;
-            resultData = new ArrayList<>();
-            this.mHandler = mHandler;
-            tempURL = "https://roads.googleapis.com/v1/snapToRoads?path=";
-            for(LatLng latLng : coordList) tempURL += latLng.latitude + "," + latLng.longitude + "|";
-            tempURL = tempURL.substring(0, tempURL.length() - CUTTING_POINT) + FOOTER;
-            Log.e("Composite URL", tempURL);
-        }
-
-        private String ReadHTML(String address, int timeout) {
-            String html = new String();
-            try {
-                URL url = new URL(address);
-                HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                if (urlConnection != null) {
-                    urlConnection.setConnectTimeout(timeout);
-                    urlConnection.setUseCaches(false);
-                    if (urlConnection.getResponseCode() == HttpURLConnection.HTTP_OK) {
-                        BufferedReader br = new BufferedReader(new InputStreamReader(urlConnection.getInputStream()));
-                        while (true) {
-                            String buf = br.readLine();
-                            if (buf == null)
-                                break;
-                            html += buf;
-                        }
-                        br.close();
-                        urlConnection.disconnect();
-                    } else return null;
-                } else return null;
-            } catch (Exception ex) {return null;}
-            return html;
-        }
-
-        @Override
-        public void run(){
-            if(isUnexecutable) return;
-            String jsonString = ReadHTML(tempURL, 2000);
-            if (jsonString == null) {
-                jsonString = "";
-            }
-            Message msg = mHandler.obtainMessage();
-            Bundle bundle = new Bundle();
-            bundle.putString("response", jsonString);
-            msg.setData(bundle);
-            mHandler.sendMessage(msg);
-        }
-
-    }
-
-    // Add this in the end
-    //    listener.onDirectionFinderSuccess(routes);
-    // snapPoints(decodePolyLine(overview_polylineJson.getString("points")));
-    // route.points = refinedPoly;
-
+    //returns rating for a single route
     private double rater(List<String> placeIds) {
         int[] numbers ={0,0};
         double total = 0;
@@ -456,13 +321,13 @@ public class DirectionFinder {
             }
 
         }
-        Log.d("Total",""+total);
-
         double finalRating = total/(numbers[0]+numbers[1]);
+        Log.d("finalRating",""+finalRating);
         return finalRating;
     }
-    private double retrieveRating(String placeId)
-    {
+
+    // Retrieve rating from the database
+    private double retrieveRating(String placeId) {
         MyDBHandler db = new MyDBHandler(mContext, null,
                 null, 1);
         double response = db.loadHandler(placeId);
@@ -475,142 +340,5 @@ public class DirectionFinder {
         //Log.d("Random number",""+showme);
         //return showme;
     }
-
-    /*
-    private void snapPoints(List<LatLng> points) {
-        final String mURL = createPlacesUrl(points);
-//        useData(points);
-
-                JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                (Request.Method.GET, mURL, null, new Response.Listener<JSONObject>() {
-
-                    @Override
-                    public void onResponse(JSONObject jsonData) {
-
-                        try {
-                            Log.d("jsonData",jsonData.toString());
-                            JSONArray jsonSnappedPoints = jsonData.getJSONArray("snappedPoints");
-                            for (int i = 0; i < jsonSnappedPoints.length(); i++) {
-                                JSONObject jsonSnappedPoint = jsonSnappedPoints.getJSONObject(i);
-                                JSONObject location = jsonSnappedPoint.getJSONObject("location");
-                                LatLng snappedPoint = new LatLng(location.getDouble("latitude"), location.getDouble("longitude"));
-                                if(i<10)
-                                    Log.d("qqqq Snap Point", snappedPoint.toString());
-                                refinedPoly.add(snappedPoint);
-                                Log.d("Refined PolyLine", refinedPoly.toString());
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }, new Response.ErrorListener() {
-
-                    @Override
-                    public void onErrorResponse(VolleyError e) {
-                        e.printStackTrace();
-                    }
-                });
-
-        Log.d("Roads API URL", mURL);
-        // Adding request to request queue
-        VolleyController.getInstance(mContext).addToRequestQueue(jsonObjectRequest);
-        try
-        {
-
-        }
-        catch(Exception e)
-        {
-            e.printStackTrace();
-        }
-        Log.d("Refined PolyLine", refinedPoly.toString());
-//
-        //
-        //try {
-        //URL url = new URL(link);
-        //InputStream is = url.openConnection().getInputStream();
-        //StringBuffer buffer = new StringBuffer();
-        //BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        //
-        //String line;
-        //while ((line = reader.readLine()) != null) {
-        //buffer.append(line + "\n");
-        //}
-        //
-        //return buffer.toString();
-        //
-        //} catch (MalformedURLException e) {
-        //e.printStackTrace();
-        //} catch (IOException e) {
-        //e.printStackTrace();
-        //}
-        //return null;
-        //
-        //new SnapDownloadRawData(){
-        //protected void onPostExecute(String res) {
-        //try {
-        //JSONObject jsonData = new JSONObject(res);
-        //JSONArray jsonSnappedPoints = jsonData.getJSONArray("snappedPoints");
-        //for (int i = 0; i < jsonSnappedPoints.length(); i++) {
-        //JSONObject jsonSnappedPoint = jsonSnappedPoints.getJSONObject(i);
-        //JSONObject location = jsonSnappedPoint.getJSONObject("location");
-        //LatLng snappedPoint = new LatLng(location.getDouble("latitude"), location.getDouble("longitude"));
-        //refined.add(snappedPoint);
-        //}
-        //}catch (JSONException e) {
-        //e.printStackTrace();
-        //}
-        //}
-        //}.execute(createPlacesUrl(points));
-        //
-    }
-    */
-
-    /*
-    public interface DataCallback {
-        void onSuccess(JSONObject result);
-    }
-    public void useData(List<LatLng> points) {
-        fetchData(points, new DataCallback() {
-            @Override
-            public void onSuccess(JSONObject jsonData) {
-                try {
-                    Log.d("jsonData",jsonData.toString());
-                    JSONArray jsonSnappedPoints = jsonData.getJSONArray("snappedPoints");
-                    for (int i = 0; i < jsonSnappedPoints.length(); i++) {
-                        JSONObject jsonSnappedPoint = jsonSnappedPoints.getJSONObject(i);
-                        JSONObject location = jsonSnappedPoint.getJSONObject("location");
-                        LatLng snappedPoint = new LatLng(location.getDouble("latitude"), location.getDouble("longitude"));
-                        if (i < 10)
-                            Log.d("qqqq Snap Point", snappedPoint.toString());
-                        refinedPoly.add(snappedPoint);
-                    }
-                }
-                catch(JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-    public void fetchData(List<LatLng> points, final DataCallback callback) {
-        String url = createPlacesUrl(points);
-
-        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
-                (Request.Method.GET, url, null, new Response.Listener<JSONObject>() {
-                    @Override
-                    public void onResponse(JSONObject response) {
-                        Log.d("penis1", response.toString());
-
-                            callback.onSuccess(response);
-
-                    }
-                }, new Response.ErrorListener() {
-                    @Override
-                    public void onErrorResponse(VolleyError error) {
-                        VolleyLog.d("penis3", "Error: " + error.getMessage());
-                    }
-                });
-        VolleyController.getInstance(mContext).addToRequestQueue(jsonObjectRequest);
-    }
-    */
 }
 

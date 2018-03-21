@@ -384,18 +384,19 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     public void onDirectionFinderSuccess(List<Route> routes) {
 
-        Log.d("Reached oDFS","Reached oDFS");
+        Log.d("Reached oDFS", "Reached oDFS");
         progressDialog.dismiss();
         polylinePaths = new ArrayList<>();
         originMarkers = new ArrayList<>();
         destinationMarkers = new ArrayList<>();
-        int[] colors = {Color.RED,Color.rgb(255,140,0),Color.rgb(0,191,255),Color.rgb(124,252,0)
-                ,Color.GREEN,Color.rgb(0,255,0)};
-        if(routes.isEmpty())
+        int[] colors = {Color.RED, Color.rgb(255, 140, 0), Color.rgb(0, 191, 255), Color.rgb(124, 252, 0)
+                , Color.GREEN, Color.rgb(0, 255, 0)};
+        if (routes.isEmpty())
             return;
-        Collections.sort(routes, new Comparator<Route>(){
-            public int compare(Route o1, Route o2){
-                return (int)(o1.rating - o2.rating);
+        Collections.sort(routes, new Comparator<Route>() {
+            public int compare(Route o1, Route o2) {
+                Log.d("ComparisionSort", o1.rating + "-" + o2.rating);
+                return (int) (o1.rating - o2.rating);
             }
         });
         int idx = 0;
@@ -407,11 +408,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             PolylineOptions polylineOptions = new PolylineOptions().
                     geodesic(true).
-                    color(colors[5-(int)floor((5.0*idx)/(routes.size()-1))]).
+                    color(colors[(int) floor((5.0 * idx) / (routes.size() - 1))]).
                     width(10);
 
             for (int i = 0; i < route.points.size(); i++)
                 polylineOptions.add(route.points.get(i));
+            Log.d("Rating:", route.rating + "");
 
             polylinePaths.add(mMap.addPolyline(polylineOptions));
             idx++;
