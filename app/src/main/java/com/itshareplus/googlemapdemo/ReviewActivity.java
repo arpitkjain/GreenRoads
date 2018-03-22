@@ -15,6 +15,10 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 
+import com.google.android.gms.common.api.Status;
+import com.google.android.gms.location.places.Place;
+import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
+import com.google.android.gms.location.places.ui.PlaceSelectionListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -134,6 +138,8 @@ public class ReviewActivity extends FragmentActivity implements OnMapReadyCallba
     private RatingBar ratingBar;
     private float ratingValue;
     private Button btnSubmit;
+    public PlaceAutocompleteFragment autocompleteFragmentS;
+    private LatLng search;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -145,6 +151,42 @@ public class ReviewActivity extends FragmentActivity implements OnMapReadyCallba
         mapFragment.getMapAsync(this);
         addListenerOnRatingBar();
         addListenerOnButton();
+        autocompleteFragmentS = (PlaceAutocompleteFragment)
+                getFragmentManager().findFragmentById(R.id.etSearch);
+        autocompleteFragmentS.setHint("Enter address");
+        autocompleteFragmentS.setOnPlaceSelectedListener(new PlaceSelectionListener() {
+            @Override
+            public void onPlaceSelected(Place place) {
+                // TODO: Get info about the selected place.
+                search = place.getLatLng();
+                Log.i("Place", "Search: " + place.getName());
+                MarkerOptions markerOptions = new MarkerOptions();
+
+                // Setting the position for the marker
+                markerOptions.position(search);
+
+                // Setting the title for the marker.
+                // This will be displayed on taping the marker
+                markerOptions.title(search.latitude + " : " + search.longitude);
+
+                // Clears the previously touched position
+                mMap.clear();
+
+                // Animating to the touched position
+                mMap.animateCamera(CameraUpdateFactory.newLatLng(search));
+
+                // Placing a marker on the touched position
+                mMap.addMarker(markerOptions);
+
+                point = search;
+            }
+
+            @Override
+            public void onError(Status status) {
+                // TODO: Handle the error.
+                Log.i("Place", "An error occurred: " + status);
+            }
+        });
     }
     public void addListenerOnRatingBar() {
 
