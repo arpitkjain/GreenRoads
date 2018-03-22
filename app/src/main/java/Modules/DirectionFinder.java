@@ -137,8 +137,8 @@ public class DirectionFinder {
         refinedPoly = new ArrayList<LatLng>();
     }
 
-    // execute -> DownloadUnrefinedRoads -> parseJSON -> DownloadRefinedRoads -> rater -> retrieveRating
-    //                             decodePolyline                 |             for each route
+    // execute -> DownloadUnrefinedRoads -> parseJSON -> MultiDownloadRefinedRoads -> rater -> retrieveRating
+    //                                    > decodePolyline        |             for each route
     //                                                            |
     //                                                            -> DirectionFinderListener::DirectionFinderSuccess(routes)
 
@@ -225,7 +225,7 @@ public class DirectionFinder {
         new MultiDownloadRefinedRoads().execute(routes);
     }
 
-    // Puts raw JSON data of snapped points into each route in background, in post it parses the JSON, assigns rating to each route structure and collectively calls for plotting them
+    // TODO:  Remove this
     private class DownloadRefinedRoads extends AsyncTask<List<Route>, Void, List<Route>> {
 
         protected List<Route> doInBackground(List<Route>... params) {
