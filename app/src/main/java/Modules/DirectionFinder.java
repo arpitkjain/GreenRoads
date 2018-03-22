@@ -63,7 +63,7 @@ import static java.lang.Math.random;
 public class DirectionFinder {
     private static final String DIRECTION_URL_API = "https://maps.googleapis.com/maps/api/directions/json?";
     private static final String GOOGLE_API_KEY = "AIzaSyBRlTaNk61pKHLzUSPBd4oAzzCkjakx-DA";
-    private static final String ROADS_URL_API = "https://roads.googleapis.com/v1/snapToRoads?";
+    private static final String ROADS_URL_API = "https://roads.googleapis.com/v1/snapToRoads?interpolate=true&";
     private static final String GOOGLE_ROADS_API_KEY = "AIzaSyAQ02l5cu_T5ve5FWSg59vx6qcR5P6Mod0";
     private DirectionFinderListener listener;
     private LatLng origin;
@@ -222,7 +222,7 @@ public class DirectionFinder {
             route.points = decodePolyLine(overview_polylineJson.getString("points"));
             routes.add(route);
         }
-        new DownloadRefinedRoads().execute(routes);
+        new MultiDownloadRefinedRoads().execute(routes);
     }
 
     // Puts raw JSON data of snapped points into each route in background, in post it parses the JSON, assigns rating to each route structure and collectively calls for plotting them
@@ -278,9 +278,127 @@ public class DirectionFinder {
                         JSONObject jsonSnappedPoint = jsonSnappedPoints.getJSONObject(i);
                         JSONObject location = jsonSnappedPoint.getJSONObject("location");
                         LatLng snappedPoint = new LatLng(location.getDouble("latitude"), location.getDouble("longitude"));
-                        String snappedPointplaceID = jsonSnappedPoint.getString("placeId");
+                        String snappedPointPlaceID = jsonSnappedPoint.getString("placeId");
                         route.points.add(snappedPoint);
-                        route.placeIds.add(snappedPointplaceID);
+                        route.placeIds.add(snappedPointPlaceID);
+                    }
+
+                    Log.i("DRR Route", route.startAddress);
+                    route.rating = rater(route.placeIds);                   /*SERIAL*/
+                }
+                listener.onDirectionFinderSuccess(routes);
+            }
+            catch (JSONException e) {
+                e.printStackTrace();
+            }
+            catch(NullPointerException e) {
+                Toast.makeText(mContext,"Please enter nearer places",Toast.LENGTH_SHORT).show();
+                flag = 0;
+            }
+            catch(TooMuchData e) {
+                Toast.makeText(mContext,"Please enter nearer places",Toast.LENGTH_SHORT).show();
+                flag = 0;
+            }
+        }
+    }
+
+    // Puts raw JSON data of snapped points into each route in background, in post it parses the JSON, assigns rating to each route structure and collectively calls for plotting them
+    private class MultiDownloadRefinedRoads extends AsyncTask<List<Route>, Void, List<Route>> {
+
+        protected List<Route> doInBackground(List<Route>... params) {
+            List<Route> routes = params[0];
+            try {
+
+                for(Route route: routes)
+                {
+                    route.jsonRAWArray = new ArrayList<>();
+                    int PAGINATION_OVERLAP = 3, PAGE_SIZE_LIMIT = 92;
+                    int offset = 0;
+                    while (offset < route.points.size()) {
+                        // Calculate which points to include in this request. We can't exceed the API's
+                        // maximum and we want to ensure some overlap so the API can infer a good location for
+                        // the first few points in each request.
+                        if (offset > 0) {
+                            offset -= PAGINATION_OVERLAP;   // Rewind to include some previous points.
+                        }
+                        int lowerBound = offset;
+                        int upperBound = Math.min(offset + PAGE_SIZE_LIMIT, route.points.size());
+
+                        // Get the data we need for this page.
+                        List<LatLng> page = route.points.subList(lowerBound, upperBound);
+
+                        URL url = new URL(createPlacesUrl(page));
+
+                        InputStream is = url.openConnection().getInputStream();
+                        StringBuffer buffer = new StringBuffer();
+                        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+
+                        String line;
+                        while ((line = reader.readLine()) != null) {
+                            buffer.append(line + "\n");
+                        }
+
+                        route.jsonRAWArray.add(buffer.toString());
+                        offset = upperBound;
+                    }
+                }
+                return routes;
+
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            return null;
+        }
+
+        protected void onPostExecute(List<Route> routes) {
+            int flag = 1;
+            int PAGINATION_OVERLAP = 3, PAGE_SIZE_LIMIT = 92;
+            if(routes==null)
+                return;
+            try {
+                for(Route route : routes) {
+                    int size = route.points.size();
+                    route.points.clear();
+                    route.placeIds = new ArrayList<>();
+
+                    int offset = 0;
+                    int idx = 0;
+                    while (offset < size) {
+                        // Calculate which points to include in this request. We can't exceed the API's
+                        // maximum and we want to ensure some overlap so the API can infer a good location for
+                        // the first few points in each request.
+                        if (offset > 0) {
+                            offset -= PAGINATION_OVERLAP;   // Rewind to include some previous points.
+                        }
+                        int lowerBound = offset;
+                        int upperBound = Math.min(offset + PAGE_SIZE_LIMIT, size);
+
+                        JSONObject jsonData = new JSONObject(route.jsonRAWArray.get(idx));
+                        JSONArray jsonSnappedPoints = jsonData.getJSONArray("snappedPoints");
+
+                        if(jsonSnappedPoints==null) {
+                            Log.d("DRR Post","TooMuchData");
+                            throw new TooMuchData("x");
+                        }
+
+                        boolean passedOverlap = false;
+                        for (int i = 0; i < jsonSnappedPoints.length(); i++) {
+                            JSONObject jsonSnappedPoint = jsonSnappedPoints.getJSONObject(i);
+                            JSONObject location = jsonSnappedPoint.getJSONObject("location");
+                            LatLng snappedPoint = new LatLng(location.getDouble("latitude"), location.getDouble("longitude"));
+                            String snappedPointPlaceID = jsonSnappedPoint.getString("placeId");
+                            if (offset == 0 || i >= PAGINATION_OVERLAP - 1) {
+                                passedOverlap = true;
+                            }
+                            if (passedOverlap) {
+                                route.points.add(snappedPoint);
+                                route.placeIds.add(snappedPointPlaceID);
+                            }
+                        }
+                        idx++;
+                        offset = upperBound;
                     }
 
                     Log.i("DRR Route", route.startAddress);

@@ -18,6 +18,7 @@ public class Route {
     public String jsonRAW;
     public List<LatLng> points;
     public List<String> placeIds;
+    public List<String> jsonRAWArray;
 }
 
 class TooMuchData extends Exception{
