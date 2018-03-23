@@ -53,7 +53,48 @@ import org.json.JSONObject;
 
 import Modules.MyDBHandler;
 //import Modules.NearestRoad;
+import com.microsoft.windowsazure.mobileservices.*;
+import java.net.MalformedURLException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.os.AsyncTask;
+import android.os.Build;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.ProgressBar;
+
+import com.google.common.util.concurrent.FutureCallback;
+import com.google.common.util.concurrent.Futures;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.SettableFuture;
+import com.microsoft.windowsazure.mobileservices.MobileServiceClient;
+import com.microsoft.windowsazure.mobileservices.http.NextServiceFilterCallback;
+import com.microsoft.windowsazure.mobileservices.http.OkHttpClientFactory;
+import com.microsoft.windowsazure.mobileservices.http.ServiceFilter;
+import com.microsoft.windowsazure.mobileservices.http.ServiceFilterRequest;
+import com.microsoft.windowsazure.mobileservices.http.ServiceFilterResponse;
+import com.microsoft.windowsazure.mobileservices.table.MobileServiceTable;
+import com.microsoft.windowsazure.mobileservices.table.query.Query;
+import com.microsoft.windowsazure.mobileservices.table.query.QueryOperations;
+import com.microsoft.windowsazure.mobileservices.table.sync.MobileServiceSyncContext;
+import com.microsoft.windowsazure.mobileservices.table.sync.MobileServiceSyncTable;
+import com.microsoft.windowsazure.mobileservices.table.sync.localstore.ColumnDataType;
+import com.microsoft.windowsazure.mobileservices.table.sync.localstore.MobileServiceLocalStoreException;
+import com.microsoft.windowsazure.mobileservices.table.sync.localstore.SQLiteLocalStore;
+import com.microsoft.windowsazure.mobileservices.table.sync.synchandler.SimpleSyncHandler;
+import com.squareup.okhttp.OkHttpClient;
+
+import static com.microsoft.windowsazure.mobileservices.table.query.QueryOperations.*;
 public class ReviewActivity extends FragmentActivity implements OnMapReadyCallback {
     public class NearestRoad {
         private static final String ROADS_URL_API = "https://roads.googleapis.com/v1/nearestRoads?";
@@ -62,6 +103,7 @@ public class ReviewActivity extends FragmentActivity implements OnMapReadyCallba
         private String placeID;
         private float ratingValue;
         private Context cntx;
+        private MobileServiceClient mClient;
 
         public NearestRoad(Context cntx){
             this.cntx=cntx;
@@ -140,10 +182,19 @@ public class ReviewActivity extends FragmentActivity implements OnMapReadyCallba
     private Button btnSubmit;
     public PlaceAutocompleteFragment autocompleteFragmentS;
     private LatLng search;
+    private MobileServiceClient mClient;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        try {
+            mClient = new MobileServiceClient(
+                    "https://greenroads.azurewebsites.net",
+                    this
+            );
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
         setContentView(R.layout.activity_review);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()

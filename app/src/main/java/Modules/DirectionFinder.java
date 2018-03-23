@@ -225,83 +225,6 @@ public class DirectionFinder {
         new MultiDownloadRefinedRoads().execute(routes);
     }
 
-    // TODO:  Remove this
-    private class DownloadRefinedRoads extends AsyncTask<List<Route>, Void, List<Route>> {
-
-        protected List<Route> doInBackground(List<Route>... params) {
-            List<Route> routes = params[0];
-            int i =0;
-            try {
-
-                for(Route route: routes)
-                {
-                    URL url = new URL(createPlacesUrl(route.points));
-                    InputStream is = url.openConnection().getInputStream();
-                    StringBuffer buffer = new StringBuffer();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        buffer.append(line + "\n");
-                    }
-
-                    route.jsonRAW = (buffer.toString());
-                    i++;
-                }
-                return routes;
-
-            } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            return null;
-        }
-
-        protected void onPostExecute(List<Route> routes) {
-            int flag = 1;
-            if(routes==null)
-                return;
-            try {
-                for(Route route : routes) {
-                    JSONObject jsonData = new JSONObject(route.jsonRAW);
-                    JSONArray jsonSnappedPoints = jsonData.getJSONArray("snappedPoints");
-                    route.points.clear();
-                    route.placeIds = new ArrayList<>();
-
-                    if(jsonSnappedPoints==null) {
-                        Log.d("DRR Post","TooMuchData");
-                        throw new TooMuchData("x");
-                    }
-
-                    for (int i = 0; i < jsonSnappedPoints.length(); i++) {
-                        JSONObject jsonSnappedPoint = jsonSnappedPoints.getJSONObject(i);
-                        JSONObject location = jsonSnappedPoint.getJSONObject("location");
-                        LatLng snappedPoint = new LatLng(location.getDouble("latitude"), location.getDouble("longitude"));
-                        String snappedPointPlaceID = jsonSnappedPoint.getString("placeId");
-                        route.points.add(snappedPoint);
-                        route.placeIds.add(snappedPointPlaceID);
-                    }
-
-                    Log.i("DRR Route", route.startAddress);
-                    route.rating = rater(route.placeIds);                   /*SERIAL*/
-                }
-                listener.onDirectionFinderSuccess(routes);
-            }
-            catch (JSONException e) {
-                e.printStackTrace();
-            }
-            catch(NullPointerException e) {
-                Toast.makeText(mContext,"Please enter nearer places",Toast.LENGTH_SHORT).show();
-                flag = 0;
-            }
-            catch(TooMuchData e) {
-                Toast.makeText(mContext,"Please enter nearer places",Toast.LENGTH_SHORT).show();
-                flag = 0;
-            }
-        }
-    }
-
     // Puts raw JSON data of snapped points into each route in background, in post it parses the JSON, assigns rating to each route structure and collectively calls for plotting them
     private class MultiDownloadRefinedRoads extends AsyncTask<List<Route>, Void, List<Route>> {
 
@@ -402,9 +325,10 @@ public class DirectionFinder {
                     }
 
                     Log.i("DRR Route", route.startAddress);
-                    route.rating = rater(route.placeIds);                   /*SERIAL*/
+                    //route.rating = rater(route.placeIds);                   /*SERIAL*/
                 }
-                listener.onDirectionFinderSuccess(routes);
+                rater(routes);
+                //listener.onDirectionFinderSuccess(routes);
             }
             catch (JSONException e) {
                 e.printStackTrace();
@@ -421,27 +345,30 @@ public class DirectionFinder {
     }
 
     //returns rating for a single route
-    private double rater(List<String> placeIds) {
-        int[] numbers ={0,0};
-        double total = 0;
-        Set<String> hashedPIDS = new HashSet<String>(placeIds);
-        Iterator<String> itr = hashedPIDS.iterator();
-        while(itr.hasNext()) {
-            String placeId = itr.next();
-            double rating = retrieveRating(placeId);
-            if(rating<=2) {
-                total += 1 * rating;
-                numbers[1]++;
-            }
-            else{
-                total += 1 * rating;
-                numbers[0]++;
-            }
+    private void rater(List<Route> routes /*List<String> placeIds*/) {
+        for(Route route: routes) {
+            int[] numbers ={0,0};
+            double total = 0;
+            Set<String> hashedPIDS = new HashSet<String>(route.placeIds);
+            Iterator<String> itr = hashedPIDS.iterator();
+            while(itr.hasNext()) {
+                String placeId = itr.next();
+                double rating = retrieveRating(placeId);
+                if(rating<=2) {
+                    total += 1 * rating;
+                    numbers[1]++;
+                }
+                else{
+                    total += 1 * rating;
+                    numbers[0]++;
+                }
 
+            }
+            double finalRating = total/(numbers[0]+numbers[1]);
+            Log.d("finalRating",""+finalRating);
+            route.rating = finalRating;
         }
-        double finalRating = total/(numbers[0]+numbers[1]);
-        Log.d("finalRating",""+finalRating);
-        return finalRating;
+        listener.onDirectionFinderSuccess(routes);
     }
 
     // Retrieve rating from the database
