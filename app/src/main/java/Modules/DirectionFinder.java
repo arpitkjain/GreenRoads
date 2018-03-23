@@ -215,8 +215,8 @@ public class DirectionFinder {
 
             route.distance = new Distance(jsonDistance.getString("text"), jsonDistance.getInt("value"));
             route.duration = new Duration(jsonDuration.getString("text"), jsonDuration.getInt("value"));
-            route.endAddress = jsonLeg.getString("end_address");
-            route.startAddress = jsonLeg.getString("start_address");
+            //route.endAddress = jsonLeg.getString("end_address");
+            //route.startAddress = jsonLeg.getString("start_address");
             route.startLocation = new LatLng(jsonStartLocation.getDouble("lat"), jsonStartLocation.getDouble("lng"));
             route.endLocation = new LatLng(jsonEndLocation.getDouble("lat"), jsonEndLocation.getDouble("lng"));
             route.points = decodePolyLine(overview_polylineJson.getString("points"));
@@ -324,7 +324,7 @@ public class DirectionFinder {
                         offset = upperBound;
                     }
 
-                    Log.i("DRR Route", route.startAddress);
+                    //Log.i("DRR Route", route.startAddress);
                     //route.rating = rater(route.placeIds);                   /*SERIAL*/
                 }
                 rater(routes);
@@ -373,9 +373,9 @@ public class DirectionFinder {
 
     // Retrieve rating from the database
     private double retrieveRating(String placeId) {
-        MyDBHandler db = new MyDBHandler(mContext, null,
-                null, 1);
-        double response = db.loadHandler(placeId);
+        double response=3;
+        //MyDBHandler db = new MyDBHandler(mContext, null,null, 1);
+        //response = db.loadHandler(placeId);
         if(response<0)
             return 3;
         else

@@ -648,11 +648,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         originMarkers.add(mMap.addMarker(new MarkerOptions()
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.start_blue))
-                .title(routes.get(0).startAddress)
                 .position(routes.get(0).startLocation)));
         destinationMarkers.add(mMap.addMarker(new MarkerOptions()
                 .icon(BitmapDescriptorFactory.fromResource(R.drawable.end_green))
-                .title(routes.get(0).endAddress)
                 .position(routes.get(0).endLocation)));
         LatLngBounds.Builder builder = new LatLngBounds.Builder();
         builder.include(routes.get(0).startLocation);
