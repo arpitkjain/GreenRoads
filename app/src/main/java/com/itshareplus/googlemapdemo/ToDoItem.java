@@ -43,8 +43,7 @@ public class ToDoItem {
     @Override
     public String toString() {
         return "ToDoItem{" +
-
-//                "mPlaceId='" + mPlaceId + '\'' +
+                "mId='" + mId + '\'' +
                 ", mRating='" + mRating + '\'' +
                 ", mNumber='" + mNumber + '\'' +
                 '}';

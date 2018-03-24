@@ -262,7 +262,7 @@ public class ReviewActivity extends FragmentActivity implements OnMapReadyCallba
             public void onClick(View v) {
                 if(point==null)
                 {
-                    Toast.makeText(ReviewActivity.this, "Long press on map to select location", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(ReviewActivity.this, "Long press on the map to select location", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 Toast.makeText(ReviewActivity.this, "Rating Registered: " + Float.toString(ratingValue), Toast.LENGTH_SHORT).show();

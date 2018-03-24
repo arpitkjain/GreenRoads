@@ -178,8 +178,6 @@
 //        }
 //    }
 //}
-
-
 package com.itshareplus.googlemapdemo;
 
 import android.Manifest;
@@ -227,6 +225,7 @@ import Modules.Route;
 
 import android.content.Intent;
 
+import static com.google.android.gms.internal.zzir.runOnUiThread;
 import static java.lang.Math.floor;
 import java.net.MalformedURLException;
 import java.util.HashMap;
@@ -234,6 +233,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -357,170 +357,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         goToReviewActivity();
     }
 
-
-    public void addItem(final ToDoItem item) {
-        if (mClient == null) {
-            return;
-        }
-
-        // Create a new item
-//        final ToDoItem item = new ToDoItem();
-
-//        item.setmPlaceId("chandigarh");
-//        item.setmRating("2");
-//        item.setmId("idkman");
-
-        // Insert the new item
-        AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>(){
-            @Override
-            protected Void doInBackground(Void... params) {
-                try {
-                    final ToDoItem entity = addItemInTable(item);
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if(true){
-//                                mAdapter.add(entity);
-                            }
-                        }
-                    });
-                } catch (final Exception e) {
-//                    createAndShowDialogFromTask(e, "Error");
-                }
-                return null;
-            }
-        };
-
-//        runAsyncTask(task);
-        task.execute();
-//        mTextNewToDo.setText("");
-    }
-
-    /**
-     * Add an item to the Mobile Service Table
-     *
-     * @param item
-     *            The item to Add
-     */
-    public ToDoItem addItemInTable(ToDoItem item) throws ExecutionException, InterruptedException {
-        ToDoItem entity = mToDoTable.insert(item).get();
-        return entity;
-    }
-
-
-
-    public void updateItem(final ToDoItem item) {
-        if (mClient == null) {
-            return;
-        }
-
-        // Create a new item
-//        final ToDoItem item = new ToDoItem();
-
-//        item.setmPlaceId("chandigarh");
-//        item.setmRating("2");
-//        item.setmId("idkman");
-
-        // Insert the new item
-        AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>(){
-            @Override
-            protected Void doInBackground(Void... params) {
-                try {
-                    final ToDoItem entity = updateItemInTable(item);
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            if(true){
-//                                mAdapter.add(entity);
-                            }
-                        }
-                    });
-                } catch (final Exception e) {
-//                    createAndShowDialogFromTask(e, "Error");
-                }
-                return null;
-            }
-        };
-
-//        runAsyncTask(task);
-        task.execute();
-//        mTextNewToDo.setText("");
-    }
-
-    /**
-     * Add an item to the Mobile Service Table
-     *
-     * @param item
-     *            The item to Add
-     */
-    public ToDoItem updateItemInTable(ToDoItem item) throws ExecutionException, InterruptedException {
-        ToDoItem entity = mToDoTable.update(item).get();
-        return entity;
-    }
-
-
-    private void getAllItems() {
-
-        // Get the items that weren't marked as completed and add them in the
-        // adapter
-
-        AsyncTask<Void, Void, Void> task = new AsyncTask<Void, Void, Void>(){
-            @Override
-            protected Void doInBackground(Void... params) {
-
-                try {
-                    final List<ToDoItem> results = getAllFromTable();
-
-                    //Offline Sync
-                    //final List<ToDoItem> results = refreshItemsFromMobileServiceTableSyncTable();
-
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-//                            mAdapter.clear();
-
-//                            for (ToDoItem item : results) {
-//                                mAdapter.add(item);
-//                            }
-                        }
-                    });
-                } catch (final Exception e){
-//                    createAndShowDialogFromTask(e, "Error");
-                }
-
-                return null;
-            }
-        };
-
-        task.execute();
-    }
-
-    /**
-     * Refresh the list with the items in the Mobile Service Table
-     */
-
-    private List<ToDoItem> getAllFromTable() throws ExecutionException, InterruptedException {
-        try {
-            return mToDoTable.execute().get();
-        } catch (MobileServiceException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    private ToDoItem getIdFromTable(String placeId) {
-        try {
-            return mToDoTable.lookUp(placeId).get();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (ExecutionException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     private void goToReviewActivity() {
         reviewButton = (Button) findViewById(R.id.btnReview);
         reviewButton.setOnClickListener(new View.OnClickListener() {
@@ -546,7 +382,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         try {
-            new DirectionFinder(this, origin, destination, mContext).execute();
+            new DirectionFinder(this, origin, destination, mContext, mClient, mToDoTable).execute();
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
