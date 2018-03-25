@@ -1,6 +1,7 @@
 package com.itshareplus.googlemapdemo;
 
 import android.app.ProgressDialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -54,11 +55,11 @@ public class SignupActivity extends AppCompatActivity {
 
         _signupButton.setEnabled(false);
 
-//        final ProgressDialog progressDialog = new ProgressDialog(SignupActivity.this,
-//                R.style.AppTheme_Dark_Dialog);
-//        progressDialog.setIndeterminate(true);
-//        progressDialog.setMessage("Creating Account...");
-//        progressDialog.show();
+        final ProgressDialog progressDialog = new ProgressDialog(SignupActivity.this,
+                R.style.AppTheme);
+        progressDialog.setIndeterminate(true);
+        progressDialog.setMessage("Creating Account...");
+        progressDialog.show();
 
         String name = _nameText.getText().toString();
         String email = _emailText.getText().toString();
@@ -73,7 +74,7 @@ public class SignupActivity extends AppCompatActivity {
                         // depending on success
                         onSignupSuccess();
                         // onSignupFailed();
-//                        progressDialog.dismiss();
+                        progressDialog.dismiss();
                     }
                 }, 3000);
     }
@@ -82,6 +83,9 @@ public class SignupActivity extends AppCompatActivity {
     public void onSignupSuccess() {
         _signupButton.setEnabled(true);
         setResult(RESULT_OK, null);
+        Intent i = new Intent(SignupActivity.this, LoginActivity.class);
+        startActivity(i);
+
         finish();
     }
 

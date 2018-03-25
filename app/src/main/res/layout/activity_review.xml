@@ -12,9 +12,8 @@
         android:name="com.google.android.gms.location.places.ui.PlaceAutocompleteFragment"
         android:layout_width="match_parent"
         android:layout_height="50dp"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
+        android:layout_toEndOf="@+id/btnBack"
         android:hint="Enter address" />
 
     <RelativeLayout
@@ -66,5 +65,13 @@
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
         android:text="Am I Safe ?" />
+
+    <Button
+        android:id="@+id/btnBack"
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/etSearch"
+        android:layout_alignParentStart="true"
+        android:background="@drawable/button_image"/>
 
 </RelativeLayout>

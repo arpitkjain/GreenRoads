@@ -184,7 +184,7 @@ public class ReviewActivity extends FragmentActivity implements OnMapReadyCallba
     private LatLng search;
     private MobileServiceClient mClient;
     private Button safeButton;
-
+    private Button backButton;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -217,6 +217,17 @@ public class ReviewActivity extends FragmentActivity implements OnMapReadyCallba
 //                startActivity(new Intent(MapsActivity.this, ReviewActivity.class));
             }
         });
+        backButton = (Button) findViewById(R.id.btnBack);
+        backButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(ReviewActivity.this, MapsActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                finish();
+            }
+        });
+
         autocompleteFragmentS.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {

@@ -191,6 +191,7 @@ public class SafeActivity extends FragmentActivity implements OnMapReadyCallback
     private LatLng search;
     private MobileServiceClient mClient;
     BottomSheetDialog bottomSheetDialog;
+    private Button backButton;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -248,7 +249,18 @@ public class SafeActivity extends FragmentActivity implements OnMapReadyCallback
                 // TODO: Handle the error.
                 Log.i("Place", "An error occurred: " + status);
             }
+
         });
+        backButton = (Button) findViewById(R.id.btnBack);
+        backButton.setOnClickListener(new View.OnClickListener() {
+                                          @Override
+                                          public void onClick(View view) {
+                                              Intent intent = new Intent(SafeActivity.this, MapsActivity.class);
+                                              intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                                              startActivity(intent);
+                                              finish();
+                                          }
+                                      });
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
     }
