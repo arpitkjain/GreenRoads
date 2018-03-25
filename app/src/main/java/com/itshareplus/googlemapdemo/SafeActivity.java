@@ -6,6 +6,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.support.annotation.NonNull;
+import android.support.design.widget.BottomSheetBehavior;
+import android.support.design.widget.BottomSheetDialog;
+import android.support.design.widget.TextInputEditText;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v7.app.AppCompatActivity;
@@ -42,6 +46,9 @@ import Modules.DirectionFinderListener;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener;
 import com.google.android.gms.maps.MapFragment;
+
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.RatingBar;
 import android.widget.RatingBar.OnRatingBarChangeListener;
@@ -95,84 +102,84 @@ import com.microsoft.windowsazure.mobileservices.table.sync.synchandler.SimpleSy
 import com.squareup.okhttp.OkHttpClient;
 
 import static com.microsoft.windowsazure.mobileservices.table.query.QueryOperations.*;
-public class ReviewActivity extends FragmentActivity implements OnMapReadyCallback {
-    public class NearestRoad {
-        private static final String ROADS_URL_API = "https://roads.googleapis.com/v1/nearestRoads?";
-        private static final String GOOGLE_ROADS_API_KEY = "AIzaSyAwfTIhnQx7SuvmspQEjNgeelNyEU3Gw4w";
-        private LatLng point;
-        private String placeID;
-        private float ratingValue;
-        private Context cntx;
-        private MobileServiceClient mClient;
-
-        public NearestRoad(Context cntx){
-            this.cntx=cntx;
-        }
-
-        public NearestRoad(LatLng point, float ratingValue) {
-            this.point = point;
-            this.ratingValue = ratingValue;
-        }
-
-        private String createPlacesUrl(LatLng point) throws UnsupportedEncodingException {
-            Log.d("Reached url","Reached url");
-            StringBuilder encodedPoint = new StringBuilder();
-            encodedPoint.append(point.latitude + "," + point.longitude);
-            String pointUnrefined = encodedPoint.toString();
-            return ROADS_URL_API + "points=" + pointUnrefined + "&key=" + GOOGLE_ROADS_API_KEY;
-        }
-
-        private class SendToServer extends AsyncTask<String, Void, String> {
-
-            @Override
-            protected String doInBackground(String... params) {
-                String link = params[0];
-                try {
-                    URL url = new URL(link);
-                    InputStream is = url.openConnection().getInputStream();
-                    StringBuffer buffer = new StringBuffer();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-
-                    String line;
-                    while ((line = reader.readLine()) != null) {
-                        buffer.append(line + "\n");
-                    }
-
-                    return buffer.toString();
-
-                } catch (MalformedURLException e) {
-                    e.printStackTrace();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            }
-
-            @Override
-            protected void onPostExecute(String res){
-                try {
-                    JSONObject jsonData = new JSONObject(res);
-                    Log.d("jsonData",jsonData.toString());
-                    JSONArray jsonSnappedPoints = jsonData.getJSONArray("snappedPoints");
-                    JSONObject jsonSnappedPoint = jsonSnappedPoints.getJSONObject(0);
-                    placeID = jsonSnappedPoint.getString("placeId");
-                    sendToServer(placeID, ratingValue);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        public void execute() throws UnsupportedEncodingException {
-            String placesURL = createPlacesUrl(point);
-            new SendToServer().execute(placesURL);
-        }
-        public void sendToServer(String placeId, float ratingValue) {
-            MyDBHandler db = new MyDBHandler(ReviewActivity.this, null,
-                    null, 1);
-            db.addHandler(placeId, ratingValue);
-            Log.d("readfromdb", Float.toString(db.loadHandler(placeId)));
-        }
-    }
+public class SafeActivity extends FragmentActivity implements OnMapReadyCallback {
+//    public class NearestRoad {
+//        private static final String ROADS_URL_API = "https://roads.googleapis.com/v1/nearestRoads?";
+//        private static final String GOOGLE_ROADS_API_KEY = "AIzaSyAwfTIhnQx7SuvmspQEjNgeelNyEU3Gw4w";
+//        private LatLng point;
+//        private String placeID;
+//        private float ratingValue;
+//        private Context cntx;
+//        private MobileServiceClient mClient;
+//
+//        public NearestRoad(Context cntx){
+//            this.cntx=cntx;
+//        }
+//
+//        public NearestRoad(LatLng point, float ratingValue) {
+//            this.point = point;
+//            this.ratingValue = ratingValue;
+//        }
+//
+//        private String createPlacesUrl(LatLng point) throws UnsupportedEncodingException {
+//            Log.d("Reached url","Reached url");
+//            StringBuilder encodedPoint = new StringBuilder();
+//            encodedPoint.append(point.latitude + "," + point.longitude);
+//            String pointUnrefined = encodedPoint.toString();
+//            return ROADS_URL_API + "points=" + pointUnrefined + "&key=" + GOOGLE_ROADS_API_KEY;
+//        }
+//
+//        private class SendToServer extends AsyncTask<String, Void, String> {
+//
+//            @Override
+//            protected String doInBackground(String... params) {
+//                String link = params[0];
+//                try {
+//                    URL url = new URL(link);
+//                    InputStream is = url.openConnection().getInputStream();
+//                    StringBuffer buffer = new StringBuffer();
+//                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+//
+//                    String line;
+//                    while ((line = reader.readLine()) != null) {
+//                        buffer.append(line + "\n");
+//                    }
+//
+//                    return buffer.toString();
+//
+//                } catch (MalformedURLException e) {
+//                    e.printStackTrace();
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//                return null;
+//            }
+//
+//            @Override
+//            protected void onPostExecute(String res){
+//                try {
+//                    JSONObject jsonData = new JSONObject(res);
+//                    Log.d("jsonData",jsonData.toString());
+//                    JSONArray jsonSnappedPoints = jsonData.getJSONArray("snappedPoints");
+//                    JSONObject jsonSnappedPoint = jsonSnappedPoints.getJSONObject(0);
+//                    placeID = jsonSnappedPoint.getString("placeId");
+//                    sendToServer(placeID, ratingValue);
+//                } catch (JSONException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//        }
+//        public void execute() throws UnsupportedEncodingException {
+//            String placesURL = createPlacesUrl(point);
+//            new SendToServer().execute(placesURL);
+//        }
+//        public void sendToServer(String placeId, float ratingValue) {
+//            MyDBHandler db = new MyDBHandler(SafeActivity.this, null,
+//                    null, 1);
+//            db.addHandler(placeId, ratingValue);
+//            Log.d("readfromdb", Float.toString(db.loadHandler(placeId)));
+//        }
+//    }
 
     private GoogleMap mMap;
     private List<Marker> originMarkers = new ArrayList<>();
@@ -183,40 +190,31 @@ public class ReviewActivity extends FragmentActivity implements OnMapReadyCallba
     public PlaceAutocompleteFragment autocompleteFragmentS;
     private LatLng search;
     private MobileServiceClient mClient;
-    private Button safeButton;
+    BottomSheetDialog bottomSheetDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        try {
-            mClient = new MobileServiceClient(
-                    "https://greenroads.azurewebsites.net",
-                    this
-            );
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
-        }
-        setContentView(R.layout.activity_review);
-        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
+//        try {
+//            mClient = new MobileServiceClient(
+//                    "https://greenroads.azurewebsites.net",
+//                    this
+//            );
+//        } catch (MalformedURLException e) {
+//            e.printStackTrace();
+//        }
+
+        bottomSheetDialog = new BottomSheetDialog(this);
+        View bottomSheetView = getLayoutInflater().inflate(R.layout.bottom_sheet, null);
+        bottomSheetDialog.setContentView(bottomSheetView);
+
+        setContentView(R.layout.activity_safe);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.review_map);
+                .findFragmentById(R.id.safe_map);
         mapFragment.getMapAsync(this);
-        addListenerOnRatingBar();
-        addListenerOnButton();
         autocompleteFragmentS = (PlaceAutocompleteFragment)
-                getFragmentManager().findFragmentById(R.id.etSearch);
+                getFragmentManager().findFragmentById(R.id.etSafe);
         autocompleteFragmentS.setHint("Enter address");
-        safeButton = (Button) findViewById(R.id.btnSafe);
-        safeButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(ReviewActivity.this, SafeActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
-                finish();
-//                startActivity(new Intent(MapsActivity.this, ReviewActivity.class));
-            }
-        });
         autocompleteFragmentS.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             @Override
             public void onPlaceSelected(Place place) {
@@ -242,6 +240,7 @@ public class ReviewActivity extends FragmentActivity implements OnMapReadyCallba
                 mMap.addMarker(markerOptions);
 
                 point = search;
+                bottomSheetDialog.show();
             }
 
             @Override
@@ -250,50 +249,8 @@ public class ReviewActivity extends FragmentActivity implements OnMapReadyCallba
                 Log.i("Place", "An error occurred: " + status);
             }
         });
-    }
 
-    public void addListenerOnRatingBar() {
-
-        ratingBar = (RatingBar) findViewById(R.id.ratingBar);
-
-        //if rating value is changed,
-        //display the current rating value in the result (textview) automatically
-        ratingBar.setOnRatingBarChangeListener(new OnRatingBarChangeListener() {
-            public void onRatingChanged(RatingBar ratingBar, float rating, boolean fromUser) {
-                ratingValue = rating;
-            }
-        });
-    }
-
-    public void addListenerOnButton() {
-        ratingBar = (RatingBar) findViewById(R.id.ratingBar);
-        btnSubmit = (Button) findViewById(R.id.btnSubmit);
-
-        //if click on me, then display the current rating value.
-        btnSubmit.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(point==null)
-                {
-                    Toast.makeText(ReviewActivity.this, "Long press on the map to select location", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                Toast.makeText(ReviewActivity.this, "Rating Registered: " + Float.toString(ratingValue), Toast.LENGTH_SHORT).show();
-                try {
-                    NearestRoad nearestRoad = new NearestRoad(point, ratingValue);
-                    nearestRoad.execute();
-                    MyDBHandler dbHandler = new MyDBHandler(ReviewActivity.this, null,
-                            null, 1);
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
-                Intent intent = new Intent(ReviewActivity.this, MapsActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                startActivity(intent);
-                finish();
-//                finishActivity(ReviewActivity.this);
-            }
-        });
+        // Obtain the SupportMapFragment and get notified when the map is ready to be used.
     }
 
     @Override
@@ -314,6 +271,7 @@ public class ReviewActivity extends FragmentActivity implements OnMapReadyCallba
 //            // to handle the case where the user grants the permission. See the documentation
 //            // for ActivityCompat#requestPermissions for more details.
 //            return;
+//
 //        }
         mMap.setOnMapLongClickListener(new OnMapLongClickListener() {
             @Override
@@ -337,9 +295,27 @@ public class ReviewActivity extends FragmentActivity implements OnMapReadyCallba
 
                 // Placing a marker on the touched position
                 mMap.addMarker(markerOptions);
+//                Log.d("penis","penis");
 
                 point = newPoint;
+                TextView Too = (TextView) bottomSheetDialog.findViewById(R.id.textoo);
+                Too.setText("You are safe!");
+                bottomSheetDialog.show();
+
+//                Toast.makeText(SafeActivity.this,point.latitude+" : "+point.longitude,Toast.LENGTH_SHORT).show();
+//
+//                BottomSheetDialog bsd = new BottomSheetDialog(SafeActivity.this);
+//                View bsv = getLayoutInflater().inflate(R.layout.bottom_sheet,null);
             }
         });
-    }
+//        BottomSheetBehavior behavior = BottomSheetBehavior.from((View) bottomSheetView.getParent());
+//        behavior.setBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+//            @Override
+//            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+//                if (newState == BottomSheetBehavior.STATE_HIDDEN){
+//                    Toast.makeText(SafeActivity.this,"Arpit",Toast.LENGTH_SHORT).show();
+//                }
+//            }
+
+        }
 }

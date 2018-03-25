@@ -274,6 +274,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private Button btnFindPath;
     private Button reviewButton;
+    private Button safeButton;
     //private EditText etOrigin;
     //private EditText etDestination;
     private List<Marker> originMarkers = new ArrayList<>();
@@ -354,10 +355,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 sendRequest();
             }
         });
-        goToReviewActivity();
-    }
-
-    private void goToReviewActivity() {
+        safeButton = (Button) findViewById(R.id.btnSafe);
+        safeButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MapsActivity.this, SafeActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                startActivity(intent);
+                finish();
+//                startActivity(new Intent(MapsActivity.this, ReviewActivity.class));
+            }
+        });
         reviewButton = (Button) findViewById(R.id.btnReview);
         reviewButton.setOnClickListener(new View.OnClickListener() {
             @Override

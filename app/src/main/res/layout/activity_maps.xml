@@ -117,4 +117,12 @@
         android:layout_toRightOf="@+id/imageView2"
         android:text="0 km" />
 
+    <Button
+        android:id="@+id/btnSafe"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:text="Am I Safe ?" />
+
 </RelativeLayout>
