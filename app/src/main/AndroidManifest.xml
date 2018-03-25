@@ -51,7 +51,9 @@
             <!-- </intent-filter> -->
         </activity>
         <activity android:name=".ReviewActivity" />
-        <activity android:name=".SafeActivity"></activity>
+        <activity android:name=".SafeActivity" />
+        <activity android:name=".LoginActivity" />
+        <activity android:name=".SignupActivity"></activity>
     </application>
 
 </manifest>
