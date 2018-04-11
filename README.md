@@ -9,8 +9,9 @@ Made for Microsoft Code.Fun.Do :smiley:
 
 ### Team Members ###
 
+[Eeshan Gupta](https://github.com/eeshan9815)
+
 [Arijit Kar](https://github.com/arijitkar98)
 
 [Arpit Jain](https://github.com/arpitkjain)
 
-[Eeshan Gupta](https://github.com/eeshan9815)
